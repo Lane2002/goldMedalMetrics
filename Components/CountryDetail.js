@@ -1,99 +1,83 @@
 import React from 'react';
 import GoldMedalMetrics from '../utils/GoldMedalMetrics';
 
-
-class CountryDetail extends React.Component {
+class Sports extends React.Component {
   constructor(props) {
     super(props);
+    this.sortBy = this.sortBy.bind(this);
     this.state = {
-      countryName: GoldMedalMetrics.fixName(props.match.params.countryName),
-      countryDetails: {
-        'name': '-',
-        'numberMedals': '-',
-        'bestSummer': '-',
-        'bestYear': '-',
-        'bestWinter': '-',
-        'bestDiscipline': '-',
-        'gdp': '-',
-        'population': '-',
-        'bestSport': '-',
-        'bestEvent': '-',
-        'mostMedalsAthlete': '-',
-        'femaleMedalists': '-',
-        'maleMedalists': '-'
-      }
+      countryName: props.match.params.countryName,
+      sports: [],
     };
   }
 
   componentDidMount() {
-    GoldMedalMetrics.getCountryDetails(GoldMedalMetrics.fixName(this.state.countryName)).then(countryDetails => {
-      if(Object.keys(countryDetails).length) {
-        this.setState({countryDetails: countryDetails});
+    GoldMedalMetrics.getSports(this.state.countryName).then(sports => {
+      if(sports.length) {
+        this.setState({sports: sports});
       }
     });
   }
 
   componentWillReceiveProps(nextProps) {
-    const newCountryName = GoldMedalMetrics.fixName(nextProps.match.params.countryName);
-    this.setState({countryName: newCountryName});
-    GoldMedalMetrics.getCountryDetails(newCountryName).then(countryDetails => {
-      if(Object.keys(countryDetails).length) {
-        this.setState({countryDetails: countryDetails});
+    const newCountryName = nextProps.match.params.countryName;
+    this.setState({countryName: nextProps.match.params.countryName});
+    GoldMedalMetrics.getSports(newCountryName).then(sports => {
+      if(sports.length) {
+        this.setState({sports: sports});
       }
+    });
+  }
+
+  sortBy(property, isAscending) {
+    GoldMedalMetrics.getSports(this.state.countryName, property, isAscending).then(sports => {
+      if(sports.length) {
+        this.setState({sports: sports});
+      }
+    });
+  }
+
+  renderSportRows() {
+    if (!this.state.sports.length) {
+      return '';
+    }
+
+    return this.state.sports.map(sport => {
+      return (
+        <tr key={sport.sportName}><td>{sport.sportName}</td>
+        <td>{sport.numberMedals}</td>
+        <td>{sport.percentageWins}%</td>
+        </tr>
+      );
     });
   }
 
   render() {
     return (
-      <div>
-      <h2 className="subheader">{this.state.countryName}</h2>
-      <table id="country-detail-table">
+    <div>
+      <h2 className="subheader">SPORTS</h2>
+      <table className="country-table">
         <tbody>
-        <tr>
-          <td className="table-descriptor">GROSS DOMESTIC PRODUCT</td>
-          <td className="table-descriptor"># OF GOLD MEDALS</td>
-          <td className="table-descriptor">POPULATION</td>
+        <tr className="table-header country-header">
+          <th>SPORT NAME
+            <img className="sort" alt="Sort Ascending" src="img/up.svg" onClick={() => this.sortBy('sport', true)}/>
+            <img className="sort" alt="Sort Descending" src="img/down.svg" onClick={() => this.sortBy('sport', false)} />
+          </th>
+          <th># OF GOLD MEDALS WON
+            <img className="sort" alt="Sort Ascending" src="img/up.svg" onClick={() => this.sortBy('count', true)}/>
+            <img className="sort" alt="Sort Descending" src="img/down.svg" onClick={() => this.sortBy('count', false)} />
+          </th>
+          <th>% OF GOLD MEDAL WINS
+            <img className="sort" alt="Sort Ascending" src="img/up.svg" onClick={() => this.sortBy('percent', true)}/>
+            <img className="sort" alt="Sort Descending" src="img/down.svg" onClick={() => this.sortBy('percent', false)} />
+          </th>
         </tr>
-        <tr>
-          <td className="table-value">{this.state.countryDetails.gdp}</td>
-          <td className="table-value">{this.state.countryDetails.numberMedals}</td>
-          <td className="table-value">{this.state.countryDetails.population}</td>
-        </tr>
-        <tr>
-          <td className="table-descriptor">MOST WINS AT A SUMMER EVENT</td>
-          <td className="table-descriptor">BEST OLYMPIC YEAR</td>
-          <td className="table-descriptor">MOST WINS AT A WINTER EVENT</td>
-        </tr>
-        <tr>
-          <td className="table-value">{this.state.countryDetails.bestSummer}</td>
-          <td className="table-value">{this.state.countryDetails.bestYear}</td>
-          <td className="table-value">{this.state.countryDetails.bestWinter}</td>
-        </tr>
-        <tr>
-          <td className="table-descriptor">NUMBER OF MALE MEDALISTS</td> 
-          <td className="table-descriptor">MOST MEDALS BY A SINGLE ATHLETE</td>
-          <td className="table-descriptor">NUMBER OF FEMALE MEDALISTS</td>
-        </tr>
-        <tr>
-          <td className="table-value">{this.state.countryDetails.maleMedalists}</td>
-          <td className="table-value">{this.state.countryDetails.mostMedalsAthlete}</td>
-          <td className="table-value">{this.state.countryDetails.femaleMedalists}</td>
-        </tr>
-        <tr>
-          <td className="table-descriptor">MOST MEDALED SPORT</td>
-          <td className="table-descriptor">MOST MEDALED DISCIPLINE</td> 
-          <td className="table-descriptor">MOST MEDALED EVENT</td> 
-        </tr>
-        <tr>
-          <td className="table-value">{this.state.countryDetails.bestSport}</td>
-          <td className="table-value">{this.state.countryDetails.bestDiscipline}</td>
-          <td className="table-value">{this.state.countryDetails.bestEvent}</td>
-        </tr>
+        {this.renderSportRows()}
         </tbody>
       </table>
       </div>
     );
-  };
-}
+  }
+};
 
-export default CountryDetail;
+export default Sports;
